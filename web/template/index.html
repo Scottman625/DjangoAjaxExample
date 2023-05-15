@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <title>Document</title>
+</head>
+<body>
+    <select  name="city" onchange="listCities()" style="width: 200px;height:50px;font-size:20px" >
+      {% for city in citys %}
+        <option style="text-align: center" value="{{city.id}}" {% if city == cityName %} selected="selected" {% endif %}>{{city}}</option>  s
+      {% endfor %}
+    </select>
+    <select id="countylist" name="county" style="width: 200px;height:50px;font-size:20px">
+      <option style="text-align: center" value="全區">全區</option>
+      {% for county in counties %}
+        <option style="text-align: center" value="{{county.name}}" {% if county == countyName %} selected="selected" {% endif %}>{{county}}</option>
+      {% endfor %}
+    </select>
+  <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    const csrftoken = getCookie('csrftoken');
+    
+    function listCities(){
+      var cityid = $("[name='city']").val();
+      // $('#county_select').html('');
+      console.log(cityid)
+      document.getElementById('countylist').innerHTML = '';
+      $.ajax({
+        type: "POST",
+        data: {'city_id':cityid,
+                'action':'refresh_county'},
+        headers: {'X-CSRFToken': csrftoken},
+        url: "{% url 'ajax_refresh_county' %}",
+        success: function(response)
+        { 
+          const data = response.data
+          console.log(data)
+          var dataHandler = $("#countylist");
+          var county_all = `<option style="text-align: center" value="全區">全區</option>`;
+          dataHandler.append(county_all);
+          data.forEach(el =>
+          {
+              var newRow = `<option style="text-align: center" value=${el.county}>${el.county}</option>`;
+              dataHandler.append(newRow);
+          });
+          console.log(dataHandler)
+
+        }
+      });
+    }
+  </script>
+</body>
+</html>
